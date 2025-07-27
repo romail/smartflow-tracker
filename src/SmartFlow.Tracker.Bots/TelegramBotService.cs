@@ -4,16 +4,17 @@ namespace SmartFlow.Tracker.Bots
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Telegram.Bot;
-    using Telegram.Bot.Exceptions;
     using Telegram.Bot.Polling;
     using Telegram.Bot.Requests;
     using Telegram.Bot.Types;
     using Telegram.Bot.Types.Enums;
-    
+    using Telegram.Bot.Exceptions;
+
+
     public class TelegramBotService(ILogger<TelegramBotService> logger, IConfiguration configuration)
         : BackgroundService
     {
-        private TelegramBotClient? _botClient;
+        private ITelegramBotClient? _bot;
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -24,48 +25,37 @@ namespace SmartFlow.Tracker.Bots
                 return;
             }
 
-            _botClient = new TelegramBotClient(token);
-            var me = await _botClient.SendRequest(new GetMeRequest(), stoppingToken);
-            logger.LogInformation("🤖 Telegram bot connected as @{Username}", me.Username);
+            _bot = new TelegramBotClient(token);
+
+            var me = await _bot.SendRequest(new GetMeRequest(), stoppingToken);
+            logger.LogInformation("🤖 Connected as @{Username}", me.Username);
 
             var receiverOptions = new ReceiverOptions
             {
-                AllowedUpdates = Array.Empty<UpdateType>(), // All types
-                ThrowPendingUpdates = true
+                AllowedUpdates = Array.Empty<UpdateType>()
             };
 
-            _botClient.StartReceiving(
-                updateHandler: HandleUpdateAsync,
-                pollingErrorHandler: HandleErrorAsync,
-                receiverOptions: receiverOptions,
+            _bot.StartReceiving(
+                HandleUpdateAsync,
+                HandlePollingErrorAsync,
+                receiverOptions,
                 cancellationToken: stoppingToken
             );
-
-            // Блокируем задачу пока токен отмены не сработает
-            await Task.Delay(Timeout.Infinite, stoppingToken);
         }
 
         private async Task HandleUpdateAsync(ITelegramBotClient bot, Update update, CancellationToken cancellationToken)
         {
-            if (update.Type != UpdateType.Message || update.Message?.Text is not { } messageText)
+            if (update.Message?.Text is not { } messageText)
                 return;
 
             var chatId = update.Message.Chat.Id;
-            logger.LogInformation("📨 Received message from {User}: {Text}", update.Message.From?.Username,
-                messageText);
+            logger.LogInformation("📩 Message from {User}: {Text}", update.Message.From?.Username, messageText);
 
-            string reply;
-
-            switch (messageText.Trim().ToLowerInvariant())
+            string reply = messageText.Trim().ToLower() switch
             {
-                case "/start":
-                    reply = "👋 Hello! I'm SmartFlow bot. Ready to manage your tasks.";
-                    break;
-
-                default:
-                    reply = $"You said: *{messageText}*\n_(but I only understand `/start` for now)_";
-                    break;
-            }
+                "/start" => "👋 Hello! I'm SmartFlow bot. Ready to manage your tasks.",
+                _ => $"You said: *{messageText}*\n_(but I only understand /start for now)_"
+            };
 
             await bot.SendRequest(
                 new SendMessageRequest
@@ -74,18 +64,20 @@ namespace SmartFlow.Tracker.Bots
                     Text = reply,
                     ParseMode = ParseMode.Markdown
                 },
-                cancellationToken);
+                cancellationToken
+            );
         }
 
-        private Task HandleErrorAsync(ITelegramBotClient bot, Exception exception, CancellationToken cancellationToken)
+        private Task HandlePollingErrorAsync(ITelegramBotClient bot, Exception exception,
+            CancellationToken cancellationToken)
         {
-            string errorMsg = exception switch
+            var errorMessage = exception switch
             {
                 ApiRequestException apiEx => $"Telegram API Error [{apiEx.ErrorCode}]: {apiEx.Message}",
                 _ => exception.ToString()
             };
 
-            logger.LogError("❗ Telegram Bot Error: {Error}", errorMsg);
+            logger.LogError("❗ Bot error: {Error}", errorMessage);
             return Task.CompletedTask;
         }
     }

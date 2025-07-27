@@ -14,10 +14,10 @@ public static class DependencyInjection
         services.AddScoped<IAIService, OpenAIService>();
         return services;
     }
-    
+
     public static IServiceCollection AddBots(this IServiceCollection services)
     {
-        services.AddSingleton<ITelegramBotService, TelegramBotService>();
+        services.AddHostedService<TelegramBotService>();
         return services;
     }
 }
