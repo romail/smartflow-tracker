@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: smartflow-api
+    env: docker
+    region: frankfurt
+    plan: free
+    dockerfilePath: ./src/SmartFlow.Tracker.Api/Dockerfile
+    buildCommand: ""
+    startCommand: "dotnet SmartFlow.Tracker.Api.dll"
+    autoDeploy: true
+    envVars:
+      - key: ConnectionStrings__DefaultConnection
+        fromDatabase:
+          name: smartflow-db
+          property: connectionString
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: OpenAI__ApiKey
+        sync: false
+      - key: OpenAI__Model
+        value: gpt-3.5-turbo
+
+databases:
+  - name: smartflow-db
+    plan: free

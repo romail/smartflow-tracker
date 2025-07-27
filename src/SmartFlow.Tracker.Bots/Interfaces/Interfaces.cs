@@ -1,6 +1,7 @@
-namespace SmartFlow.Tracker.Bots.Interfaces;
-
-public interface Interfaces
+namespace SmartFlow.Tracker.Application.Bots.Interfaces
 {
-    
+    public interface ITelegramBotService
+    {
+        Task HandleUpdateAsync(string jsonUpdate, CancellationToken cancellationToken = default);
+    }
 }

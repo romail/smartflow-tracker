@@ -1,6 +1,4 @@
-namespace SmartFlow.Tracker.Application.Tasks.Models;
-
-public class UpdateTaskRequest
+namespace SmartFlow.Tracker.Application.Tasks.Models
 {
-    
+    public record UpdateTaskRequest(string? Title, string? Status);
 }

@@ -1,6 +1,4 @@
-namespace SmartFlow.Tracker.Application.Tasks.Models;
-
-public class CreateTaskRequest
+namespace SmartFlow.Tracker.Application.Tasks.Models
 {
-    
+    public record CreateTaskRequest(string? Title, bool UseAI = false);
 }
