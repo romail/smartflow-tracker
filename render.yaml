@@ -20,6 +20,19 @@ services:
       - key: OpenAI__Model
         value: gpt-3.5-turbo
 
+  - type: worker
+    name: smartflow-migrations
+    env: docker
+    plan: free
+    dockerfilePath: ./src/SmartFlow.Tracker.Migrations/Dockerfile
+    startCommand: "dotnet SmartFlow.Tracker.Migrations.dll"
+    autoDeploy: true
+    envVars:
+      - key: CONNECTION_STRING
+        fromDatabase:
+          name: smartflow-db
+          property: connectionString
+
 databases:
   - name: smartflow-db
     plan: free
