@@ -21,7 +21,6 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddAIServices();
-builder.Services.AddBots();
 builder.WebHost.UseUrls("http://*:80");
 
 var app = builder.Build();

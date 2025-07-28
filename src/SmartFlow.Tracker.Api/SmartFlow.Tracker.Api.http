@@ -1,6 +1,34 @@
-@SmartFlow.Tracker.Api_HostAddress = http://localhost:5005
+@baseUrl = https://smartflow-tracker.onrender.com
+@localBase = http://localhost:5005
 
-GET {{SmartFlow.Tracker.Api_HostAddress}}/weatherforecast/
+### 🤖 Set Telegram Webhook
+GET {{baseUrl}}/api/bot/set-webhook
 Accept: application/json
 
 ###
+
+### 📩 Send Test Telegram Update (Webhook POST от Telegram)
+POST {{baseUrl}}/api/bot
+Content-Type: application/json
+
+{
+  "update_id": 123456789,
+  "message": {
+    "message_id": 1,
+    "from": {
+      "id": 11111111,
+      "is_bot": false,
+      "first_name": "Test",
+      "username": "testuser",
+      "language_code": "en"
+    },
+    "chat": {
+      "id": 11111111,
+      "first_name": "Test",
+      "username": "testuser",
+      "type": "private"
+    },
+    "date": 1670000000,
+    "text": "/start"
+  }
+}
