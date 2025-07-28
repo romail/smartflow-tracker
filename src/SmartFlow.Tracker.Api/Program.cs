@@ -14,7 +14,7 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc( "v1", new OpenApiInfo {   Title = "SmartFlow API", Version = "v1" });
     c.EnableAnnotations();
-    c.ExampleFilters(); 
+    // c.ExampleFilters(); 
 });
 
 // TODO: DI, DB, Application Layer
@@ -22,13 +22,6 @@ builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddAIServices();
 builder.Services.AddBots();
-
-builder.Services.AddSingleton<ITelegramBotClient>(sp =>
-{
-    var config = sp.GetRequiredService<IConfiguration>();
-    return new TelegramBotClient(config["Telegram:BotToken"]);
-});
-
 builder.WebHost.UseUrls("http://*:80");
 
 var app = builder.Build();
@@ -40,16 +33,16 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "SmartFlow API v1");
 });
 
+app.UseHttpsRedirection();
+app.UseRouting();
+app.UseAuthorization();
+app.MapControllers();
+
 app.MapGet("/api/bot/set-webhook", async (ITelegramBotClient bot, IConfiguration config) =>
 {
     var webhookUrl = config["Telegram:WebhookUrl"];
     await bot.SetWebhook(webhookUrl);
     return Results.Ok($"✅ Webhook set: {webhookUrl}");
 });
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-app.MapControllers();
 
 app.Run();
