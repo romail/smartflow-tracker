@@ -38,11 +38,4 @@ app.UseRouting();
 app.UseAuthorization();
 app.MapControllers();
 
-app.MapGet("/api/bot/set-webhook", async (ITelegramBotClient bot, IConfiguration config) =>
-{
-    var webhookUrl = config["Telegram:WebhookUrl"];
-    await bot.SetWebhook(webhookUrl);
-    return Results.Ok($"✅ Webhook set: {webhookUrl}");
-});
-
 app.Run();
