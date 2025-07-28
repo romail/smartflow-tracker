@@ -6,7 +6,7 @@ class Program
     static int Main(string[] args)
     {
         var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING")
-                               ?? "Host=db;Database=smartflow;Username=postgres;Password=postgres";
+                               ?? throw new ArgumentNullException("CONNECTION_STRING not found");
 
         var upgrader = DeployChanges.To
             .PostgresqlDatabase(connectionString)
@@ -15,6 +15,12 @@ class Program
             .Build();
 
         var result = upgrader.PerformUpgrade();
+
+        if (!result.Successful)
+        {
+            Console.Error.WriteLine(result.Error);
+        }
+
         return result.Successful ? 0 : -1;
     }
 }
